@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 INSTALL_DIR=/usr/local/bin
+# Workaround for Mac OS/Homebrew permissions error
+if [ $(uname) == 'Darwin' ]
+then
+  INSTALL_DIR=/usr/local
+fi
+
 SCRIPT_NAME=keys4user
 INSTALL_PATH=$INSTALL_DIR/$SCRIPT_NAME
 SSHD_CONF=/etc/ssh/sshd_config
@@ -41,13 +47,13 @@ SCRIPT-DOC
 
 install () {
 
-  touch $INSTALL_PATH
-  chown root $INSTALL_PATH
-  chmod 0755 $INSTALL_PATH
-  printf "$KEYS4USER" > $INSTALL_PATH
+  touch $INSTALL_PATH &&
+  chown root $INSTALL_PATH &&
+  chmod 0755 $INSTALL_PATH &&
+  printf "$KEYS4USER" > $INSTALL_PATH &&
 
-  grep "AuthorizedKeysCommand" $SSHD_CONF | grep -vq ^[\#] || echo "AuthorizedKeysCommand $INSTALL_PATH" >> $SSHD_CONF
-  grep "AuthorizedKeysCommandUser" $SSHD_CONF | grep -vq ^[\#] || echo "AuthorizedKeysCommandUser root" >> $SSHD_CONF
+  (grep "AuthorizedKeysCommand" $SSHD_CONF | grep -vq ^[\#] || echo "AuthorizedKeysCommand $INSTALL_PATH" >> $SSHD_CONF) &&
+  (grep "AuthorizedKeysCommandUser" $SSHD_CONF | grep -vq ^[\#] || echo "AuthorizedKeysCommandUser root" >> $SSHD_CONF)
 
 }
 
