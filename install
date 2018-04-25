@@ -18,14 +18,14 @@ then
     do
     if [ ! -z "$URL" ]
     then
-      KEY=$(curl -sf "$URL")
+      KEY=$(curl -sfL "$URL")
       CURL_EXIT_STATUS=$?
       if [ $CURL_EXIT_STATUS != 0 ]
       then
         cat $CACHE
         exit $?
       fi
-      AUTH_KEYS+=$(curl -sf "$URL")$'\n'
+      AUTH_KEYS+="$KEY$(echo)"
     fi
   done <$KEY_LOC
 fi
