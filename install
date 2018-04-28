@@ -1,9 +1,24 @@
 #!/usr/bin/env bash
 INSTALL_DIR=/root
+FAIL2BAN=1
+while getopts ":f" OPTION
+do
+  case $OPTION in
+  f)
+    FAIL2BAN=0
+    ;;
+  \?)
+    echo "Used for the help menu $OPTARG"
+    exit 999
+    ;;
+  esac
+done
+
 
 SCRIPT_NAME=keys4user
 INSTALL_PATH=$INSTALL_DIR/$SCRIPT_NAME
 SSHD_CONF=/etc/ssh/sshd_config
+FAIL2BAN_SSH_PATH=/etc/fail2ban/fail2ban.d/ssh.local
 
 read -d '' KEYS4USER <<'SCRIPT-DOC'
 #!/usr/bin/env bash
@@ -40,16 +55,55 @@ then
 fi
 SCRIPT-DOC
 
-install () {
+read -d '' SSH_JAIL_CONF <<'EOF'
+[ssh]
 
-  touch $INSTALL_PATH &&
-  chown root $INSTALL_PATH &&
-  chmod 0755 $INSTALL_PATH &&
-  printf "$KEYS4USER" > $INSTALL_PATH &&
+enabled = true
+port	= ssh
+filter	= sshd
+action   = iptables[name=SSH, port=ssh, protocol=tcp]
+logpath  = /var/log/auth.log
+maxretry = 3
+bantime = 900
+EOF
 
-  (grep "AuthorizedKeysCommand" $SSHD_CONF | grep -vq ^[\#] || echo "AuthorizedKeysCommand $INSTALL_PATH" >> $SSHD_CONF) &&
-  (grep "AuthorizedKeysCommandUser" $SSHD_CONF | grep -vq ^[\#] || echo "AuthorizedKeysCommandUser root" >> $SSHD_CONF)
+install_script () {
+  printf "Installing $SCRIPT_NAME to $INSTALL_PATH..."
+
+  touch $INSTALL_PATH || fail 1
+  chown root $INSTALL_PATH || fail 2
+  chmod 0755 $INSTALL_PATH || fail 3
+  printf "$KEYS4USER" > $INSTALL_PATH || fail 4
 
 }
+
+install_SSH_config () {
+  printf "Installing required config to $SSHD_CONF..."
+  (grep "AuthorizedKeysCommand" $SSHD_CONF | grep -vq ^[\#] || echo "AuthorizedKeysCommand $INSTALL_PATH" >> $SSHD_CONF) || fail 5
+  (grep "AuthorizedKeysCommandUser" $SSHD_CONF | grep -vq ^[\#] || echo "AuthorizedKeysCommandUser root" >> $SSHD_CONF) || fail 6
+
+}
+
+install_fail2ban () {
+  printf "Installing fail2ban..."
+
+  apt-get update -y || fail $?
+  apt-get install fail2ban -y || fail $?
+
+  touch $FAIL2BAN_SSH_PATH || fail 7
+  chown root $FAIL2BAN_SSH_PATH || fail 8
+  chmod 0755 $FAIL2BAN_SSH_PATH || fail 9
+  printf "$SSH_JAIL_CONF" > $FAIL2BAN_SSH_PATH || fail 10
+}
+
+install () {
+  install_script
+  install_SSH_config
+  if (("$FAIL2BAN" > "0"))
+  then
+    install_fail2ban
+  fi
+}
+
 
 install
