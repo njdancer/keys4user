@@ -20,7 +20,7 @@ INSTALL_PATH=$INSTALL_DIR/$SCRIPT_NAME
 SSHD_CONF=/etc/ssh/sshd_config
 FAIL2BAN_SSH_PATH=/etc/fail2ban/fail2ban.d/ssh.local
 
-read -d '' KEYS4USER <<'SCRIPT-DOC'
+read -d '' KEYS4USER <<'EOF'
 #!/usr/bin/env bash
 HOME_DIR=$(eval echo "~$1")
 SSH_DIR=$HOME_DIR/.ssh
@@ -53,7 +53,7 @@ then
   chmod 0644 $CACHE
   printf "$AUTH_KEYS" | tee "$CACHE"
 fi
-SCRIPT-DOC
+EOF
 
 read -d '' SSH_JAIL_CONF <<'EOF'
 [ssh]
