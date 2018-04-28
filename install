@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
-INSTALL_DIR=/usr/local/bin
-# Workaround for Mac OS/Homebrew permissions error
-if [ $(uname) == 'Darwin' ]
-then
-  INSTALL_DIR=/usr/local
-fi
+INSTALL_DIR=/root
 
 SCRIPT_NAME=keys4user
 INSTALL_PATH=$INSTALL_DIR/$SCRIPT_NAME
