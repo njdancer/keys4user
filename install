@@ -97,8 +97,8 @@ install_SSH_config () {
   printf "Installing required config to $SSHD_CONF...\n"
   tput sgr0
 
-  (grep "AuthorizedKeysCommand" $SSHD_CONF | grep -vq ^[\#] || printf "\n\nAuthorizedKeysCommand $INSTALL_PATH\n" >> $SSHD_CONF) || exit 5
-  (grep "AuthorizedKeysCommandUser" $SSHD_CONF | grep -vq ^[\#] || printf "AuthorizedKeysCommandUser root\n" >> $SSHD_CONF) || exit 6
+  (grep "AuthorizedKeysCommand" $SSHD_CONF | grep -vq ^[\#] || printf "\n\nAuthorizedKeysCommand $INSTALL_PATH\n" >> $SSHD_CONF) || exit 11
+  (grep "AuthorizedKeysCommandUser" $SSHD_CONF | grep -vq ^[\#] || printf "AuthorizedKeysCommandUser root\n" >> $SSHD_CONF) || exit 12
 }
 
 install_fail2ban () {
@@ -109,10 +109,10 @@ install_fail2ban () {
   apt-get update -y || exit $?
   apt-get install fail2ban -y || exit $?
 
-  touch $FAIL2BAN_SSH_PATH || exit 7
-  chown root $FAIL2BAN_SSH_PATH || exit 8
-  chmod 0755 $FAIL2BAN_SSH_PATH || exit 9
-  printf "$SSH_JAIL_CONF" > $FAIL2BAN_SSH_PATH || exit 10
+  touch $FAIL2BAN_SSH_PATH || exit 31
+  chown root $FAIL2BAN_SSH_PATH || exit 32
+  chmod 0755 $FAIL2BAN_SSH_PATH || exit 33
+  printf "$SSH_JAIL_CONF" > $FAIL2BAN_SSH_PATH || exit 34
 }
 
 install () {
