@@ -70,30 +70,29 @@ EOF
 install_script () {
   printf "Installing $SCRIPT_NAME to $INSTALL_PATH..."
 
-  touch $INSTALL_PATH || fail 1
-  chown root $INSTALL_PATH || fail 2
-  chmod 0755 $INSTALL_PATH || fail 3
-  printf "$KEYS4USER" > $INSTALL_PATH || fail 4
-
+  touch $INSTALL_PATH || exit 1
+  chown root $INSTALL_PATH || exit 2
+  chmod 0755 $INSTALL_PATH || exit 3
+  printf "$KEYS4USER" > $INSTALL_PATH || exit 4
 }
 
 install_SSH_config () {
   printf "Installing required config to $SSHD_CONF..."
 
-  (grep "AuthorizedKeysCommand" $SSHD_CONF | grep -vq ^[\#] || printf "\n\nAuthorizedKeysCommand $INSTALL_PATH\n" >> $SSHD_CONF) || fail 5
-  (grep "AuthorizedKeysCommandUser" $SSHD_CONF | grep -vq ^[\#] || printf "AuthorizedKeysCommandUser root\n" >> $SSHD_CONF) || fail 6
+  (grep "AuthorizedKeysCommand" $SSHD_CONF | grep -vq ^[\#] || printf "\n\nAuthorizedKeysCommand $INSTALL_PATH\n" >> $SSHD_CONF) || exit 5
+  (grep "AuthorizedKeysCommandUser" $SSHD_CONF | grep -vq ^[\#] || printf "AuthorizedKeysCommandUser root\n" >> $SSHD_CONF) || exit 6
 }
 
 install_fail2ban () {
   printf "Installing fail2ban..."
 
-  apt-get update -y || fail $?
-  apt-get install fail2ban -y || fail $?
+  apt-get update -y || exit $?
+  apt-get install fail2ban -y || exit $?
 
-  touch $FAIL2BAN_SSH_PATH || fail 7
-  chown root $FAIL2BAN_SSH_PATH || fail 8
-  chmod 0755 $FAIL2BAN_SSH_PATH || fail 9
-  printf "$SSH_JAIL_CONF" > $FAIL2BAN_SSH_PATH || fail 10
+  touch $FAIL2BAN_SSH_PATH || exit 7
+  chown root $FAIL2BAN_SSH_PATH || exit 8
+  chmod 0755 $FAIL2BAN_SSH_PATH || exit 9
+  printf "$SSH_JAIL_CONF" > $FAIL2BAN_SSH_PATH || exit 10
 }
 
 install () {
