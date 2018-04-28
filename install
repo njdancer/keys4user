@@ -79,9 +79,9 @@ install_script () {
 
 install_SSH_config () {
   printf "Installing required config to $SSHD_CONF..."
-  (grep "AuthorizedKeysCommand" $SSHD_CONF | grep -vq ^[\#] || echo "AuthorizedKeysCommand $INSTALL_PATH" >> $SSHD_CONF) || fail 5
-  (grep "AuthorizedKeysCommandUser" $SSHD_CONF | grep -vq ^[\#] || echo "AuthorizedKeysCommandUser root" >> $SSHD_CONF) || fail 6
 
+  (grep "AuthorizedKeysCommand" $SSHD_CONF | grep -vq ^[\#] || printf "\n\nAuthorizedKeysCommand $INSTALL_PATH\n" >> $SSHD_CONF) || fail 5
+  (grep "AuthorizedKeysCommandUser" $SSHD_CONF | grep -vq ^[\#] || printf "AuthorizedKeysCommandUser root\n" >> $SSHD_CONF) || fail 6
 }
 
 install_fail2ban () {
