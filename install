@@ -115,6 +115,10 @@ install_fail2ban () {
   printf "$SSH_JAIL_CONF" > $FAIL2BAN_SSH_PATH || exit 34
 }
 
+reload_SSH () {
+  systemctl reload ssh || exit 41
+}
+
 install () {
   install_script
   install_SSH_config
@@ -122,6 +126,7 @@ install () {
   then
     install_fail2ban
   fi
+  reload_SSH
 }
 
 
