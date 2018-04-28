@@ -27,13 +27,28 @@ KEY_LOC=$SSH_DIR/key_locations
 CACHE=$KEY_LOC.cache
 AUTH_KEYS=""
 
+which curl > /dev/null
+if (("$?" == "0"))
+then
+  DOWNLOAD="curl -sfL"
+else
+  which wget > /dev/null
+  if (("$?" == "0"))
+  then
+    DOWNLOAD="wget -q -O -"
+  else
+    printf "Neither curl or wget found in path. Exiting.\n"
+    exit 9
+  fi
+fi
+
 if [ -e "$KEY_LOC" ]
 then
   while read URL
     do
     if [ ! -z "$URL" ]
     then
-      KEY=$(curl -sfL "$URL")
+      KEY=$($DOWNLOAD "$URL")
       CURL_EXIT_STATUS=$?
       if [ $CURL_EXIT_STATUS != 0 ]
       then
