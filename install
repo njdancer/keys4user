@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 INSTALL_DIR=/root
+if [ $(uname) == 'Darwin' ]
+then
+  # /root is not available on Mac OS
+  INSTALL_DIR=/usr/local
+fi
 SCRIPT_NAME=keys4user
 INSTALL_PATH=$INSTALL_DIR/$SCRIPT_NAME
 SSHD_CONF=/etc/ssh/sshd_config
