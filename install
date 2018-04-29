@@ -123,12 +123,9 @@ install_fail2ban () {
 }
 
 reload_SSH () {
-  if [ $(uname) != 'Darwin' ]
-  then
-    printf_bold "Reloading SSH...\n"
+  printf_bold "Reloading SSH...\n"
 
-    systemctl reload ssh || exit 41
-  fi
+  systemctl reload ssh || exit 41
 }
 
 install () {
@@ -138,7 +135,11 @@ install () {
   then
     install_fail2ban
   fi
-  reload_SSH
+
+  if [ $(uname) != 'Darwin' ]
+  then
+    reload_SSH
+  fi
 }
 
 
