@@ -131,7 +131,7 @@ install_fail2ban () {
   touch $FAIL2BAN_SSH_PATH || exit 31
   chown root $FAIL2BAN_SSH_PATH || exit 32
   chmod 0755 $FAIL2BAN_SSH_PATH || exit 33
-  printf "$SSH_JAIL_CONF" > $FAIL2BAN_SSH_PATH || exit 34
+  printf "$SSH_JAIL_CONF\n" > $FAIL2BAN_SSH_PATH || exit 34
 }
 
 reload_SSH () {
