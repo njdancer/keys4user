@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 INSTALL_DIR=/root
+FAIL2BAN_SSH_PATH=/etc/fail2ban/jail.d/ssh.local
 if [ $(uname) == 'Darwin' ]
 then
   # /root is not available on Mac OS
   INSTALL_DIR=/usr/local
+  # Homebrew configures fail2ban to look in /usr/local/etc
+  FAIL2BAN_SSH_PATH=/usr/local/etc/fail2ban/jail.d/ssh.local
 fi
 SCRIPT_NAME=keys4user
 INSTALL_PATH=$INSTALL_DIR/$SCRIPT_NAME
 SSHD_CONF=/etc/ssh/sshd_config
-FAIL2BAN_SSH_PATH=/etc/fail2ban/fail2ban.d/ssh.local
 
 FAIL2BAN=1
 while getopts ":f" OPTION
