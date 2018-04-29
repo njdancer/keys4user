@@ -113,20 +113,8 @@ install_SSH_config () {
 install_fail2ban () {
   printf_bold "Installing fail2ban...\n"
 
-  if [ $(uname) == 'Darwin' ]
-  then
-    BREW_TEST_DIR="/usr/local/bin"
-    if [ ! -d "$BREW_TEST_DIR" ]
-    then
-      printf_bold "INSTALL FAILED: Homebrew does not appear to be installed\n"
-      return
-    fi
-    BREW_USER=$(ls -ld /usr/local/bin | awk '{print $3}')
-    sudo -u $BREW_USER brew install fail2ban || exit $?
-  else
-    apt-get update -y || exit $?
-    apt-get install fail2ban -y || exit $?
-  fi
+  apt-get update -y || exit $?
+  apt-get install fail2ban -y || exit $?
 
   touch $FAIL2BAN_SSH_PATH || exit 31
   chown root $FAIL2BAN_SSH_PATH || exit 32
@@ -146,7 +134,7 @@ reload_SSH () {
 install () {
   install_script
   install_SSH_config
-  if (("$FAIL2BAN" > "0"))
+  if (("$FAIL2BAN" > "0")) && [ $(uname) != 'Darwin' ]
   then
     install_fail2ban
   fi
