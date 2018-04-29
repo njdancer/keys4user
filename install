@@ -88,10 +88,14 @@ maxretry = 3
 bantime = 900
 EOF
 
-install_script () {
+printf_bold () {
   tput bold
-  printf "Installing $SCRIPT_NAME to $INSTALL_PATH...\n"
+  printf "$@"
   tput sgr0
+}
+
+install_script () {
+  printf_bold "Installing $SCRIPT_NAME to $INSTALL_PATH...\n"
 
   touch $INSTALL_PATH || exit 1
   chown root $INSTALL_PATH || exit 2
@@ -100,18 +104,14 @@ install_script () {
 }
 
 install_SSH_config () {
-  tput bold
-  printf "Installing required config to $SSHD_CONF...\n"
-  tput sgr0
+  printf_bold "Installing required config to $SSHD_CONF...\n"
 
   (grep "AuthorizedKeysCommand" $SSHD_CONF | grep -vq ^[\#] || printf "\n\nAuthorizedKeysCommand $INSTALL_PATH\n" >> $SSHD_CONF) || exit 11
   (grep "AuthorizedKeysCommandUser" $SSHD_CONF | grep -vq ^[\#] || printf "AuthorizedKeysCommandUser root\n" >> $SSHD_CONF) || exit 12
 }
 
 install_fail2ban () {
-  tput bold
-  printf "Installing fail2ban...\n"
-  tput sgr0
+  printf_bold "Installing fail2ban...\n"
 
   apt-get update -y || exit $?
   apt-get install fail2ban -y || exit $?
@@ -123,6 +123,8 @@ install_fail2ban () {
 }
 
 reload_SSH () {
+  printf_bold "Reloading SSH...\n"
+
   systemctl reload ssh || exit 41
 }
 
