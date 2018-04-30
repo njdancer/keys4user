@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 INSTALL_DIR=/root
 FAIL2BAN_SSH_PATH=/etc/fail2ban/jail.d/ssh.local
-if [ $(uname) == 'Darwin' ]
+if [ "$(uname)" == 'Darwin' ]
 then
   # /root is not available on Mac OS
   INSTALL_DIR=/usr/local
@@ -24,7 +24,7 @@ do
   esac
 done
 
-read -d '' KEYS4USER <<'EOF'
+read -r -d '' KEYS4USER <<'EOF'
 #!/usr/bin/env bash
 HOME_DIR=$(eval echo "~$1")
 SSH_DIR=$HOME_DIR/.ssh
@@ -74,7 +74,7 @@ then
 fi
 EOF
 
-read -d '' SSH_JAIL_CONF <<'EOF'
+read -r -d '' SSH_JAIL_CONF <<'EOF'
 [ssh]
 
 enabled = true
@@ -88,28 +88,30 @@ EOF
 
 printf_bold () {
   tput bold
+  # shellcheck disable=SC2059
   printf "$@"
   tput sgr0
 }
 
 install_script () {
-  printf_bold "Installing $SCRIPT_NAME to $INSTALL_PATH...\n"
+  printf_bold "Installing %s to %s...\\n" "$SCRIPT_NAME" "$INSTALL_PATH"
 
   touch $INSTALL_PATH || exit 1
   chown root $INSTALL_PATH || exit 2
   chmod 0755 $INSTALL_PATH || exit 3
-  printf "$KEYS4USER" > $INSTALL_PATH || exit 4
+  printf %s "$KEYS4USER" > $INSTALL_PATH || exit 4
 }
 
 install_SSH_config () {
-  printf_bold "Installing required config to $SSHD_CONF...\n"
+  printf_bold "Installing required config to %s...\\n" "$SSHD_CONF"
 
-  (grep "AuthorizedKeysCommand" $SSHD_CONF | grep -vq ^[\#] || printf "\n\nAuthorizedKeysCommand $INSTALL_PATH\n" >> $SSHD_CONF) || exit 11
-  (grep "AuthorizedKeysCommandUser" $SSHD_CONF | grep -vq ^[\#] || printf "AuthorizedKeysCommandUser root\n" >> $SSHD_CONF) || exit 12
+  (grep "AuthorizedKeysCommand" $SSHD_CONF | grep -vq "^[\\#]" || printf "\\n\\nAuthorizedKeysCommand %s\\n" "$INSTALL_PATH" >> $SSHD_CONF) || exit 11
+  (grep "AuthorizedKeysCommandUser" $SSHD_CONF | grep -vq "^[\\#]" || printf "AuthorizedKeysCommandUser root\\n" >> $SSHD_CONF) || exit 12
+
 }
 
 install_fail2ban () {
-  printf_bold "Installing fail2ban...\n"
+  printf_bold "Installing fail2ban...\\n"
 
   apt-get update -y || exit $?
   apt-get install fail2ban -y || exit $?
@@ -117,11 +119,11 @@ install_fail2ban () {
   touch $FAIL2BAN_SSH_PATH || exit 31
   chown root $FAIL2BAN_SSH_PATH || exit 32
   chmod 0755 $FAIL2BAN_SSH_PATH || exit 33
-  printf "$SSH_JAIL_CONF\n" > $FAIL2BAN_SSH_PATH || exit 34
+  printf "%s\\n" "$SSH_JAIL_CONF" > $FAIL2BAN_SSH_PATH || exit 34
 }
 
 reload_SSH () {
-  printf_bold "Reloading SSH...\n"
+  printf_bold "Reloading SSH...\\n"
 
   systemctl reload ssh || exit 41
 }
@@ -129,12 +131,12 @@ reload_SSH () {
 install () {
   install_script
   install_SSH_config
-  if (("$FAIL2BAN" > "0")) && [ $(uname) != 'Darwin' ]
+  if (("$FAIL2BAN" > "0")) && [ "$(uname)" != 'Darwin' ]
   then
     install_fail2ban
   fi
 
-  if [ $(uname) != 'Darwin' ]
+  if [ "$(uname)" != 'Darwin' ]
   then
     reload_SSH
   fi
