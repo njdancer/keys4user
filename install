@@ -10,10 +10,15 @@ SCRIPT_NAME=keys4user
 INSTALL_PATH=$INSTALL_DIR/$SCRIPT_NAME
 SSHD_CONF=/etc/ssh/sshd_config
 
+SSH_HARDENING=1
 FAIL2BAN=1
-while getopts ":f" OPTION
+
+while getopts ":hf" OPTION
 do
   case $OPTION in
+  h)
+    SSH_HARDENING=0
+    ;;
   f)
     FAIL2BAN=0
     ;;
@@ -93,6 +98,24 @@ printf_bold () {
   tput sgr0
 }
 
+modify_config () {
+  # $1 file path
+  # $2 option
+  # $3 value
+  # $4 allow multiple
+  if ! grep -q "^$2 $3" "$1"
+  then
+    # Config not properly set
+    if [ ! "$4" ]
+    then
+      # Comment out any incorrect config lines
+      sed -i '' "/^$2/ s/^#*/#/" "$SSHD_CONF"
+    fi
+    # Insert new config
+    printf "%s %s\\n" "$2" "$3" >> $SSHD_CONF
+  fi
+}
+
 install_script () {
   printf_bold "Installing %s to %s...\\n" "$SCRIPT_NAME" "$INSTALL_PATH"
 
@@ -107,7 +130,17 @@ install_SSH_config () {
 
   (grep "AuthorizedKeysCommand" $SSHD_CONF | grep -vq "^[\\#]" || printf "\\n\\nAuthorizedKeysCommand %s\\n" "$INSTALL_PATH" >> $SSHD_CONF) || exit 11
   (grep "AuthorizedKeysCommandUser" $SSHD_CONF | grep -vq "^[\\#]" || printf "AuthorizedKeysCommandUser root\\n" >> $SSHD_CONF) || exit 12
+}
 
+install_SSH_hardening () {
+  printf_bold "Hardening SSH config in %s...\\n" "$SSHD_CONF"
+
+  modify_config "$SSHD_CONF" Protocol 2
+  modify_config "$SSHD_CONF" HostKey /etc/ssh/ssh_host_ed25519_key 1
+  modify_config "$SSHD_CONF" HostKey /etc/ssh/ssh_host_rsa_key 1
+  modify_config "$SSHD_CONF" KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256
+  modify_config "$SSHD_CONF" Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+  modify_config "$SSHD_CONF" MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com
 }
 
 install_fail2ban () {
@@ -131,6 +164,10 @@ reload_SSH () {
 install () {
   install_script
   install_SSH_config
+  if (("$SSH_HARDENING" > "0"))
+  then
+    install_SSH_hardening
+  fi
   if (("$FAIL2BAN" > "0")) && [ "$(uname)" != 'Darwin' ]
   then
     install_fail2ban
