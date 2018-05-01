@@ -98,6 +98,10 @@ printf_bold () {
   tput sgr0
 }
 
+sedi () {
+    sed --version >/dev/null 2>&1 && (sed -i -- "$@" || sed -i "" "$@")
+}
+
 modify_config () {
   # $1 file path
   # $2 option
@@ -109,7 +113,7 @@ modify_config () {
     if [ ! "$4" ]
     then
       # Comment out any incorrect config lines
-      sed -i '' "/^$2/ s/^#*/#/" "$SSHD_CONF"
+      sedi "/^$2/ s/^#*/#/" "$SSHD_CONF"
     fi
     # Insert new config
     printf "%s %s\\n" "$2" "$3" >> $SSHD_CONF
